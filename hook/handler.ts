@@ -1,15 +1,15 @@
 /**
- * OpenClaw Display Hook
+ * XTeInk Tamagotchi Display Hook
  *
- * Publishes Claude Code / Clawdbot messages to MQTT for the XTeInk e-ink display.
+ * Publishes OpenClaw/Clawdbot/MoltBot messages to MQTT for the XTeInk e-ink display.
  * Requires mosquitto_pub to be installed: brew install mosquitto (macOS) or apt install mosquitto-clients (Linux)
  */
 
 import { execSync } from 'child_process';
 
 // Configuration - customize via environment variables
-const MQTT_BROKER = process.env.OPENCLAW_MQTT_BROKER || 'broker.hivemq.com';
-const MQTT_TOPIC = process.env.OPENCLAW_MQTT_TOPIC || 'openclaw/demo/display';
+const MQTT_BROKER = process.env.TAMAGOTCHI_MQTT_BROKER || 'broker.hivemq.com';
+const MQTT_TOPIC = process.env.TAMAGOTCHI_MQTT_TOPIC || 'tamagotchi/demo/display';
 
 // Maximum message length (matches firmware display capacity)
 const MAX_MESSAGE_LENGTH = 288;
@@ -47,8 +47,8 @@ export default async (event: any) => {
       `mosquitto_pub -h "${MQTT_BROKER}" -t "${MQTT_TOPIC}" -m '${payload.replace(/'/g, "'\\''")}'`,
       { timeout: 5000 }
     );
-    console.log(`[openclaw] Published: ${state} - ${activity}`);
+    console.log(`[tamagotchi] Published: ${state} - ${activity}`);
   } catch (err) {
-    console.error('[openclaw] Failed to publish:', err);
+    console.error('[tamagotchi] Failed to publish:', err);
   }
 };

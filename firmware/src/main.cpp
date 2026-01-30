@@ -1,10 +1,10 @@
 /**
- * OpenClaw - XTeInk X4 Firmware
+ * XTeInk Tamagotchi - E-Ink Display Firmware
  *
- * Displays Clawdbot/Claude Code activity on an e-ink display via MQTT.
+ * Displays Tamagotchi/Clawdbot/MoltBot activity on an e-ink display via MQTT.
  * Subscribes to MQTT topic for real-time push notifications.
  *
- * GitHub: https://github.com/maddiedreese/xteink-openclaw
+ * GitHub: https://github.com/maddiedreese/xteink-tamagotchi
  */
 
 #include <Arduino.h>
@@ -28,14 +28,14 @@ const char* MQTT_SERVER = "broker.hivemq.com";
 const int MQTT_PORT = 1883;
 
 // MQTT Topic - change this to something unique for your setup!
-// Format: openclaw/<your-unique-id>/display
-const char* MQTT_TOPIC = "openclaw/demo/display";
+// Format: tamagotchi/<your-unique-id>/display
+const char* MQTT_TOPIC = "tamagotchi/demo/display";
 
 // Client ID for MQTT (should be unique per device)
-const char* MQTT_CLIENT_ID = "openclaw-xteink";
+const char* MQTT_CLIENT_ID = "tamagotchi-xteink";
 
 // WiFi Setup AP name (shown when device needs WiFi configuration)
-const char* AP_NAME = "OpenClaw-Setup";
+const char* AP_NAME = "Tamagotchi-Setup";
 
 // ============================================================================
 // HARDWARE PINS (XTeInk X4 specific - do not change)
@@ -435,7 +435,7 @@ void showMessage(const char* line1, const char* line2 = nullptr, const char* lin
 void setup() {
     Serial.begin(115200);
     delay(1000);
-    Serial.println("\n\nOpenClaw - XTeInk X4 Display");
+    Serial.println("\n\nTamagotchi - XTeInk X4 Display");
     Serial.println("================================");
 
     // Initialize SPI
@@ -446,13 +446,13 @@ void setup() {
     display.setRotation(3);
     display.setTextWrap(false);
 
-    showMessage("OpenClaw", "", "Starting...");
+    showMessage("Tamagotchi", "", "Starting...");
 
     // WiFi Manager
     WiFiManager wifiManager;
     wifiManager.setConfigPortalTimeout(180);
 
-    showMessage("WiFi Setup", "", "Connect to: OpenClaw-Setup");
+    showMessage("WiFi Setup", "", "Connect to: Tamagotchi-Setup");
 
     if (!wifiManager.autoConnect(AP_NAME)) {
         Serial.println("WiFi failed");
@@ -465,7 +465,7 @@ void setup() {
     Serial.print("IP: ");
     Serial.println(WiFi.localIP());
 
-    showMessage("OpenClaw", "WiFi OK!", "Connecting to MQTT...");
+    showMessage("Tamagotchi", "WiFi OK!", "Connecting to MQTT...");
 
     // Setup MQTT
     mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
@@ -515,14 +515,14 @@ void loop() {
         lastWiFiCheck = millis();
         if (WiFi.status() != WL_CONNECTED) {
             Serial.println("WiFi disconnected - starting config portal");
-            showMessage("WiFi Lost", "", "Connect to: OpenClaw-Setup");
+            showMessage("WiFi Lost", "", "Connect to: Tamagotchi-Setup");
 
             WiFiManager wifiManager;
             wifiManager.setConfigPortalTimeout(180);
 
             if (wifiManager.startConfigPortal(AP_NAME)) {
                 Serial.println("WiFi reconnected!");
-                showMessage("OpenClaw", "WiFi OK!", "Reconnecting MQTT...");
+                showMessage("Tamagotchi", "WiFi OK!", "Reconnecting MQTT...");
                 mqttConnect();
                 state.needsRedraw = true;
             } else {
