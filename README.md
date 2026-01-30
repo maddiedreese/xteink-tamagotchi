@@ -203,9 +203,9 @@ The device will reboot and connect to your WiFi. The display should show:
 
 ---
 
-### Step 4: Install the Clawdbot Skill
+### Step 4: Install the Clawdbot Hook
 
-The hook is packaged as a Clawdbot skill. Copy it to your hooks directory:
+The hook is a Clawdbot/OpenClaw plugin that automatically runs on every message. Copy it to your hooks directory:
 
 ```bash
 # For Clawdbot:
@@ -214,6 +214,8 @@ cp -r hook ~/.clawdbot/hooks/xteink-display
 # For OpenClaw:
 cp -r hook ~/.openclaw/hooks/xteink-display
 ```
+
+> **Note:** Once copied, the hook automatically activates. It listens for `agent:response` (assistant responses) and `session:message` (user messages) events and publishes to MQTT on each one. No additional configuration needed!
 
 ---
 
