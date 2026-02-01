@@ -4,12 +4,12 @@
 
 cd ~/.clawdbot/skills/xteink-display
 
-MESSAGE="Hi from @maddiedreese!"
+MESSAGE="Hi!"
 
 echo "Starting sprite demo in 3 seconds..."
 sleep 3
 
-echo "Sending idle sprite (5 second hold)..."
+echo "Sending idle sprite (2 second hold)..."
 ./script.sh "$MESSAGE" idle
 sleep 5
 
