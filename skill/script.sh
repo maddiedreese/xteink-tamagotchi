@@ -29,7 +29,7 @@ echo "$MESSAGE" > /tmp/xteink_last_message.txt
 
 # MQTT settings
 MQTT_BROKER="${CLAWDBOT_XTEINK_BROKER:-broker.hivemq.com}"
-MQTT_TOPIC="${CLAWDBOT_XTEINK_TOPIC:-grimacegotchi/display}"
+MQTT_TOPIC="${CLAWDBOT_XTEINK_TOPIC:-tamagotchi/default/display}"
 
 # Escape message for JSON (handle quotes, newlines)
 ESCAPED_MESSAGE=$(echo "$MESSAGE" | head -c 288 | jq -Rs '.')

@@ -1,6 +1,9 @@
 # PlatformIO
 firmware/.pio/
 firmware/.vscode/
+firmware/build/
+firmware/include/sprites.h
+firmware/include/sprite_*.h
 
 # Python
 __pycache__/
@@ -21,3 +24,6 @@ venv/
 *.o
 *.elf
 *.bin
+
+# OS
+Thumbs.db
