@@ -46,10 +46,12 @@ XTeInk Tamagotchi transforms an XTeInk X4 e-ink display into a companion for you
 
 | Feature | Description |
 |---------|-------------|
-| **Mood Sprites** | 8 different states (sleeping, idle, alert, thinking, talking, working, excited, error) |
+| **Mood Sprites** | 8 different states (sleeping, idle, alert, thinking, talking, working, excited, error) - **you create your own!** |
 | **Activity Status** | What the assistant is currently doing (e.g., "Processing...", "Responding...") |
 | **Messages** | Up to 288 characters of the latest response |
 | **System Status** | Battery percentage, WiFi connection, and MQTT connection status |
+
+> **Note:** This repository does not include sprite images. You will create your own unique character sprites following the workflow in the [Custom Sprites](#custom-sprites) section.
 
 ---
 
@@ -628,8 +630,8 @@ xteink-tamagotchi/
 │   ├── src/
 │   │   └── main.cpp            # Main firmware (C++)
 │   ├── include/
-│   │   ├── sprites.h           # Sprite includes (auto-generated)
-│   │   ├── sprite_*.h          # Individual sprite headers
+│   │   ├── sprites.h           # (Auto-generated - see sprites/ folder)
+│   │   ├── sprite_*.h          # (Auto-generated - see sprites/ folder)
 │   │   └── FreeMonoBold*.h     # Font files
 │   └── platformio.ini          # PlatformIO configuration
 │
@@ -637,20 +639,25 @@ xteink-tamagotchi/
 │   ├── SKILL.md                # Skill metadata and configuration
 │   └── script.sh               # Shell script for publishing to MQTT
 │
-├── sprites/                     # Source sprite images (200x200 PNG)
-│   ├── sleeping.png
-│   ├── idle.png
-│   ├── alert.png
-│   ├── thinking.png
-│   ├── talking.png
-│   ├── working.png
-│   ├── excited.png
-│   └── error.png
+├── sprites/                     # Your sprite templates (create your own!)
+│   ├── README.md               # Sprite creation guide
+│   ├── sleeping.png            # (add your sprite here)
+│   ├── idle.png                # (add your sprite here)
+│   ├── alert.png               # (add your sprite here)
+│   ├── thinking.png            # (add your sprite here)
+│   ├── talking.png             # (add your sprite here)
+│   ├── working.png             # (add your sprite here)
+│   ├── excited.png             # (add your sprite here)
+│   └── error.png               # (add your sprite here)
 │
 ├── convert_sprites.py           # PNG → C header converter
 ├── README.md                    # This file
+├── CONTRIBUTING.md              # Contribution guidelines
+├── CODE_OF_CONDUCT.md           # Community standards
 └── LICENSE                      # MIT License
 ```
+
+> **Important:** The `firmware/include/` and sprite PNG files are not included. You must create your own sprites following the [Custom Sprites](#custom-sprites) guide.
 
 ---
 
@@ -665,9 +672,14 @@ Yes! Change both:
    const char* MQTT_SERVER = "your-broker.com";
    ```
 
-2. **Hook** (environment variable):
+2. **Skill** (environment variable):
    ```bash
-   export TAMAGOTCHI_MQTT_BROKER="your-broker.com"
+   export CLAWDBOT_XTEINK_BROKER="your-broker.com"
+   ```
+
+   Or edit `skill/script.sh`:
+   ```bash
+   MQTT_BROKER="your-broker.com"
    ```
 
 ---
