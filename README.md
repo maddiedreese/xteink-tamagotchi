@@ -21,7 +21,9 @@ Display your OpenClaw / Clawdbot / MoltBot AI assistant's activity on a portable
    - [Step 3: Set Up WiFi](#step-3-set-up-wifi)
    - [Step 4: Install the Clawdbot Skill](#step-4-install-the-clawdbot-skill)
    - [Step 5: Configure the Skill](#step-5-configure-the-skill)
-   - [Step 6: Test It](#step-6-test-it)
+   - [Step 6: Configure Your Agent to Auto-Run the Skill](#step-6-configure-your-agent-to-auto-run-the-skill)
+   - [Step 7: Use the Skill](#step-7-use-the-skill)
+   - [Step 8: Test It](#step-8-test-it)
 6. [Understanding the Components](#understanding-the-components)
    - [Firmware](#firmware)
    - [The Skill](#the-skill)
@@ -274,7 +276,7 @@ TOPIC="tamagotchi/your-unique-id/display"
 
 ---
 
-### Step 6: Use the Skill
+### Step 7: Use the Skill
 
 After sending a message to your AI assistant on Telegram (or any platform), run the skill to update the display:
 
@@ -306,7 +308,36 @@ cd ~/.clawdbot/skills/xteink-display
 
 ---
 
-### Step 7: Test It
+### Step 6: Configure Your Agent to Auto-Run the Skill
+
+**Important:** You need to configure your Clawdbot agent to run the skill **after every outgoing message**. This ensures the display updates automatically when you respond to users.
+
+#### Option A: Add to Agent's Instructions (Recommended)
+
+Add this to your agent's SOUL.md or AGENTS.md:
+
+```markdown
+## XTeInk Display
+
+After every message you send to users (on Telegram, Discord, Signal, etc.), immediately run the XTeInk skill:
+
+```bash
+cd ~/.clawdbot/skills/xteink-display && ./script.sh "Your exact message here" talking
+```
+
+- Use `talking` when responding to users
+- Use `excited` when tasks complete successfully
+- Use `error` when something goes wrong
+- Pass the **exact same message** you sent to the user
+```
+
+#### Option B: Add to Daily Notes Template
+
+If you use daily notes or templates, add a reminder to run the skill after each response.
+
+---
+
+### Step 8: Test It
 
 1. **Start Clawdbot:**
    ```bash
