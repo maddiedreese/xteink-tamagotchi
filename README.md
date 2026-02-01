@@ -1,10 +1,11 @@
 # XTeInk Tamagotchi
 
-Display your OpenClaw / Clawdbot / MoltBot AI assistant's activity on a portable e-ink display in real-time.
+Display your OpenClaw / Clawdbot / MoltBot AI assistant's activity on a portable e-ink display in real-time using a **Clawdbot skill**.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 [![ESP32-C3](https://img.shields.io/badge/ESP32-C3-blue)](https://www.espressif.com/en/products/socs/esp32-c3)
 [![MQTT](https://img.shields.io/badge/MQTT-broker.hivemq.com-orange)](https://www.hivemq.com)
+[![Clawdbot Skill](https://img.shields.io/badge/Clawdbot-Skill-blue)](https://docs.clawd.bot)
 
 ---
 
@@ -19,11 +20,13 @@ Display your OpenClaw / Clawdbot / MoltBot AI assistant's activity on a portable
    - [Step 2: Configure and Flash Firmware](#step-2-configure-and-flash-firmware)
    - [Step 3: Set Up WiFi](#step-3-set-up-wifi)
    - [Step 4: Install the Clawdbot Skill](#step-4-install-the-clawdbot-skill)
-   - [Step 5: Configure the Hook](#step-5-configure-the-hook)
-   - [Step 6: Test It](#step-6-test-it)
+   - [Step 5: Configure the Skill](#step-5-configure-the-skill)
+   - [Step 6: Configure Your Agent to Auto-Run the Skill](#step-6-configure-your-agent-to-auto-run-the-skill)
+   - [Step 7: Use the Skill](#step-7-use-the-skill)
+   - [Step 8: Test It](#step-8-test-it)
 6. [Understanding the Components](#understanding-the-components)
    - [Firmware](#firmware)
-   - [The Hook](#the-hook)
+   - [The Skill](#the-skill)
    - [MQTT Message Format](#mqtt-message-format)
 7. [Customization](#customization)
    - [Custom Sprites](#custom-sprites)
@@ -57,8 +60,9 @@ XTeInk Tamagotchi transforms an XTeInk X4 e-ink display into a companion for you
 │                        YOUR COMPUTER                             │
 │                                                                 │
 │  ┌──────────────┐     ┌──────────────────┐     ┌─────────────┐  │
-│  │  Clawdbot    │────▶│   Hook Handler   │────▶│ mosquitto_pub│  │
-│  │  (main app)  │     │  (xteink-display)│     │  (MQTT CLI)  │  │
+│  │  Clawdbot    │────▶│   Clawdbot       │────▶│ mosquitto_pub│  │
+│  │  (main app)  │     │   Skill          │     │  (MQTT CLI)  │  │
+│  │              │     │   (manual)       │     │              │  │
 │  └──────────────┘     └──────────────────┘     └──────┬──────┘  │
 │                                                        │         │
 │                                                        │ MQTT    │
@@ -81,10 +85,17 @@ XTeInk Tamagotchi transforms an XTeInk X4 e-ink display into a companion for you
 ### Data Flow
 
 1. **Clawdbot** processes a user message and generates a response
-2. **The hook** intercepts the response event
-3. **mosquitto_pub** publishes a JSON message to the MQTT broker
-4. **The XTeInk** (subscribed to the same topic) receives the message
-5. **The firmware** parses the JSON and updates the e-ink display
+2. **You send the response** to Telegram (or your messaging platform)
+3. **You run the skill** (`xteink-display` skill) with your message and state
+4. **mosquitto_pub** publishes a JSON message to the MQTT broker
+5. **The XTeInk** (subscribed to the same topic) receives the message
+6. **The firmware** parses the JSON and updates the e-ink display
+
+The skill approach gives you:
+- ✅ Full control over when/what is displayed
+- ✅ Works with any messaging platform (Telegram, Discord, Signal, etc.)
+- ✅ No automatic publishing of sensitive/thought messages
+- ✅ Can customize state (thinking, talking, excited, etc.) per message
 
 ---
 
@@ -111,7 +122,7 @@ No Raspberry Pi, no additional batteries, no soldering required. The XTeInk X4 i
 # Install via pip:
 pip install platformio
 
-# 2. MQTT client tools (for the hook to publish messages)
+# 2. MQTT client tools (for the skill to publish messages)
 # macOS:
 brew install mosquitto
 
@@ -203,46 +214,140 @@ The device will reboot and connect to your WiFi. The display should show:
 
 ---
 
-### Step 4: Install the Clawdbot Hook
+### Step 4: Install the Clawdbot Skill
 
-The hook is a Clawdbot/OpenClaw plugin that automatically runs on every message. Copy it to your hooks directory:
+The skill is a Clawdbot plugin that lets you manually publish messages to the e-ink display. Copy it to your skills directory:
 
 ```bash
-# For Clawdbot:
-cp -r hook ~/.clawdbot/hooks/xteink-display
+# Copy the skill to your Clawdbot skills folder
+mkdir -p ~/.clawdbot/skills
+cp -r /path/to/xteink-tamagotchi/skill ~/.clawdbot/skills/xteink-display
 
-# For OpenClaw:
-cp -r hook ~/.openclaw/hooks/xteink-display
+# Or if using the main repo's skill location:
+cp -r skill ~/.clawdbot/skills/xteink-display
 ```
 
-> **Note:** Once copied, the hook automatically activates. It listens for `agent:response` (assistant responses) and `session:message` (user messages) events and publishes to MQTT on each one. No additional configuration needed!
+The skill is now installed! You can verify it by checking:
+```bash
+ls ~/.clawdbot/skills/xteink-display/
+# Should show: SKILL.md  script.sh
+```
 
 ---
 
-### Step 5: Configure the Hook
+### Step 5: Configure the Skill
 
-The hook needs to know your MQTT topic. Set it via environment variable:
+The skill needs your MQTT topic configuration. You can configure it in the skill's SKILL.md or pass parameters directly:
 
-#### macOS / Linux (Bash/Zsh)
+#### Option A: Edit SKILL.md
 
-Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
+Open `~/.clawdbot/skills/xteink-display/SKILL.md` and update the metadata:
 
-```bash
-export TAMAGOTCHI_MQTT_TOPIC="tamagotchi/your-unique-id/display"
-export TAMAGOTCHI_MQTT_BROKER="broker.hivemq.com"
+```yaml
+metadata: 
+  clawdbot:
+    config:
+      properties:
+        mqtt_broker:
+          default: broker.hivemq.com
+          type: string
+        mqtt_topic:
+          default: tamagotchi/your-unique-id/display
+          type: string
+      required:
+        - mqtt_broker
+        - mqtt_topic
+      type: object
 ```
 
-#### Apply Changes
+#### Option B: Use Default Topic
+
+The skill defaults to `grimacegotchi/display`. To use a custom topic, edit the script:
 
 ```bash
-source ~/.zshrc  # or ~/.bashrc
+# Open the script
+nano ~/.clawdbot/skills/xteink-display/script.sh
+
+# Change the topic variable:
+TOPIC="tamagotchi/your-unique-id/display"
 ```
 
 > **Important:** Use the **same topic** you configured in the firmware!
 
 ---
 
-### Step 6: Test It
+### Step 7: Use the Skill
+
+After sending a message to your AI assistant on Telegram (or any platform), run the skill to update the display:
+
+```bash
+# Navigate to the skill directory
+cd ~/.clawdbot/skills/xteink-display
+
+# Run the script with your message and state
+./script.sh "Your message here" talking
+
+# Examples for different states:
+./script.sh "" idle
+./script.sh "New message received!" alert
+./script.sh "Processing your request..." thinking
+./script.sh "Searching the web..." working
+./script.sh "Task completed!" excited
+./script.sh "Something went wrong" error
+```
+
+#### Available States
+
+| State | When to Use |
+|-------|-------------|
+| `idle` | Default state, waiting for activity |
+| `alert` | New message received from user |
+| `thinking` | Processing/thinking about the request |
+| `talking` | Responding to user |
+| `working` | Using a tool (search, fetch, etc.) |
+| `excited` | Task completed successfully |
+| `error` | Error at some point in the process |
+| `sleeping` | Idle for 5+ minutes |
+
+---
+
+### Step 6: Configure Your Agent to Auto-Run the Skill
+
+**Important:** You need to configure your Clawdbot agent to run the skill **after every outgoing message**. This ensures the display updates automatically when you respond to users.
+
+#### Option A: Add to Agent's Instructions (Recommended)
+
+Add this to your agent's SOUL.md or AGENTS.md:
+
+```markdown
+## XTeInk Display
+
+After every message you send to users (on Telegram, Discord, Signal, etc.), immediately run the XTeInk skill:
+
+```bash
+cd ~/.clawdbot/skills/xteink-display && ./script.sh "Your exact message here" talking
+```
+
+**States to use:**
+- `idle` - default state
+- `alert` - new message received from user
+- `thinking` - processing/thinking
+- `talking` - responding to user
+- `working` - using a tool (search, fetch, etc.)
+- `excited` - task completed successfully
+- `error` - error at some point in the process
+- `sleeping` - idle for 5+ minutes
+
+Pass the **exact same message** you sent to the user.
+```
+
+#### Option B: Add to Daily Notes Template
+
+If you use daily notes or templates, add a reminder to run the skill after each response.
+
+---
+
+### Step 8: Test It
 
 1. **Start Clawdbot:**
    ```bash
@@ -251,7 +356,13 @@ source ~/.zshrc  # or ~/.bashrc
 
 2. **Send a message** to your AI assistant
 
-3. **Watch your XTeInk display** — it should:
+3. **After responding**, run the skill:
+   ```bash
+   cd ~/.clawdbot/skills/xteink-display
+   ./script.sh "Your response here" talking
+   ```
+
+4. **Watch your XTeInk display** — it should:
    - Show the "talking" sprite
    - Display your message
    - Show "Responding..." as the activity
@@ -282,24 +393,39 @@ const char* AP_NAME = "Tamagotchi-Setup";        // WiFi setup AP name
 
 ---
 
-### The Hook
+### The Skill
 
-The hook (`hook/handler.ts`) is a Clawdbot plugin that:
+The skill (`skill/script.sh`) is a Clawdbot skill that you manually invoke to publish messages to the e-ink display.
 
-1. **Listens for assistant responses** (event type: `agent:response`)
-2. **Extracts the message content** (up to 288 characters)
-3. **Determines the mood state** based on event type
-4. **Publishes to MQTT** using `mosquitto_pub`
+**How to use:**
+```bash
+./script.sh "Your message" talking
+```
 
-**The hook is triggered when:**
-- Assistant generates a response → publishes with `state: "talking"`
-- User sends a message → publishes with `state: "alert"`
+**What it does:**
+1. **Receives your message and state** as command-line arguments
+2. **Builds the JSON payload** (message, state, activity)
+3. **Publishes to MQTT** using `mosquitto_pub`
+4. **Updates the e-ink display** with your message and current state
+
+**Key features:**
+- Manual control - you decide when/what to publish
+- Works with any messaging platform (Telegram, Discord, Signal, etc.)
+- No automatic publishing of sensitive content
+- Full control over states (alert, thinking, talking, excited, error, idle, sleeping)
+
+**Configuration (in `skill/script.sh`):**
+```bash
+BROKER="broker.hivemq.com"       # MQTT broker
+TOPIC="tamagotchi/demo/display"  # Your unique topic
+MAX_CHARS=288                    # Max message length (display limit)
+```
 
 ---
 
 ### MQTT Message Format
 
-The hook publishes JSON messages in this format:
+The skill publishes JSON messages in this format:
 
 ```json
 {
@@ -328,43 +454,64 @@ The hook publishes JSON messages in this format:
 
 ### Custom Sprites
 
-You can replace the default sprites with your own designs:
+You can replace the default sprites with your own designs. Here's our actual workflow:
 
-1. **Create PNG images:**
-   - Size: 200×200 pixels
-   - Format: Black and white (1-bit)
-   - Transparent backgrounds work best
+#### Our Sprite Creation Workflow
 
-2. **Name them:**
-   ```
-   sprites/
-   ├── sleeping.png
-   ├── idle.png
-   ├── alert.png
-   ├── thinking.png
-   ├── talking.png
-   ├── working.png
-   ├── excited.png
-   └── error.png
-   ```
+1. **Generate with Nano Banana Pro**
+   - Use Gemini 3 Pro Image (Nano Banana Pro) to generate the initial sprite design
+   - Get a clean PNG with your character/design
 
-3. **Run the converter:**
+2. **Remove Background with Canva Pro**
+   - Upload to Canva
+   - Use "Remove Background" tool to get a clean transparent background
+   - Export as PNG
+
+3. **Convert to Pixel Art with Piskel**
+   - Import the PNG into Piskel (piskelapp.com)
+   - Resize to 200×200 pixels
+   - Use the pixel art tools to clean up and stylize
+   - Export as PNG
+
+4. **Run the Converter**
    ```bash
    # Install dependencies first
-   pip install platformio   # For pio command
+   pip install platformio
    python3 convert_sprites.py
    ```
 
-4. **Copy generated headers:**
+5. **Copy Generated Headers**
    ```bash
    cp ~/clawdbot-tamagotchi/xteink-firmware/include/*.h firmware/include/
    ```
 
-5. **Rebuild and flash:**
+6. **Rebuild and Flash**
    ```bash
    cd firmware
    pio run -t upload
    ```
+
+#### Sprite Requirements
+
+| Requirement | Details |
+|-------------|---------|
+| Size | 200×200 pixels |
+| Format | PNG with transparent background |
+| Style | Pixel art (1-bit black and white works best) |
+
+#### Sprite Names
+
+```
+sprites/
+├── sleeping.png
+├── idle.png
+├── alert.png
+├── thinking.png
+├── talking.png
+├── working.png
+├── excited.png
+└── error.png
+```
 
 ---
 
@@ -380,12 +527,13 @@ You can replace the default sprites with your own designs:
 | `MQTT_CLIENT_ID` | `const char*` | `tamagotchi-xteink` | Unique client ID |
 | `AP_NAME` | `const char*` | `Tamagotchi-Setup` | WiFi setup portal name |
 
-#### Hook (Environment Variables)
+#### Skill (script.sh Configuration)
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `TAMAGOTCHI_MQTT_BROKER` | `broker.hivemq.com` | MQTT broker hostname |
-| `TAMAGOTCHI_MQTT_TOPIC` | `tamagotchi/demo/display` | MQTT topic to publish |
+| Option | Default | Description |
+|--------|---------|-------------|
+| `BROKER` | `broker.hivemq.com` | MQTT broker hostname |
+| `TOPIC` | `tamagotchi/demo/display` | MQTT topic to publish |
+| `MAX_CHARS` | `288` | Max message length (display limit) |
 
 ---
 
@@ -423,7 +571,7 @@ You can replace the default sprites with your own designs:
 
 ---
 
-### Hook not publishing
+### Skill not working
 
 **Checklist:**
 
@@ -434,7 +582,7 @@ You can replace the default sprites with your own designs:
 
 2. **Check the topic matches:**
    - Firmware topic: `firmware/src/main.cpp` → `MQTT_TOPIC`
-   - Hook topic: Environment variable `TAMAGOTCHI_MQTT_TOPIC`
+   - Skill topic: `skill/script.sh` → `TOPIC`
 
 3. **Test manually:**
    ```bash
@@ -442,7 +590,16 @@ You can replace the default sprites with your own designs:
      -m '{"message":"Hello!","state":"talking","activity":"Testing"}'
    ```
 
-4. **Check Clawdbot logs** for hook execution messages
+4. **Check the skill script is executable:**
+   ```bash
+   chmod +x skill/script.sh
+   ```
+
+5. **Run with verbose output:**
+   ```bash
+   cd skill
+   ./script.sh "Test message" talking
+   ```
 
 ---
 
@@ -450,7 +607,7 @@ You can replace the default sprites with your own designs:
 
 **Cause:** Maximum message length is 288 characters (display limitation).
 
-**Solution:** The hook automatically truncates messages. Longer messages will end with "..." on the display.
+**Solution:** The skill automatically truncates messages. Longer messages will end with "..." on the display.
 
 ---
 
@@ -476,9 +633,9 @@ xteink-tamagotchi/
 │   │   └── FreeMonoBold*.h     # Font files
 │   └── platformio.ini          # PlatformIO configuration
 │
-├── hook/                        # Clawdbot/OpenClaw hook
-│   ├── HOOK.md                 # Hook metadata
-│   └── handler.ts              # TypeScript handler (publishes to MQTT)
+├── skill/                       # Clawdbot skill for publishing to display
+│   ├── SKILL.md                # Skill metadata and configuration
+│   └── script.sh               # Shell script for publishing to MQTT
 │
 ├── sprites/                     # Source sprite images (200x200 PNG)
 │   ├── sleeping.png
@@ -536,7 +693,7 @@ The XTeInk X4 has a built-in battery. With typical usage (a few messages per day
 
 Yes! The display works with any AI assistant that can publish MQTT messages. You'll need to:
 
-1. Create a custom hook/integration for your assistant
+1. Create a custom integration for your assistant
 2. Publish JSON in the [correct format](#mqtt-message-format)
 3. Subscribe to the same topic
 
