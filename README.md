@@ -107,7 +107,7 @@ The skill approach gives you:
 | **USB-C Cable** | To power and flash the device |
 | **Computer** | macOS or Linux for development |
 
-**Where to buy:** [XTeInk Store](https://www.xteink.com)
+**Where to buy:** [AliExpress](https://s.click.aliexpress.com/e/_c33YGlq7) (affiliate link) | [XTeInk Store](https://www.xteink.com)
 
 No Raspberry Pi, no additional batteries, no soldering required. The XTeInk X4 is a complete, self-contained device.
 
