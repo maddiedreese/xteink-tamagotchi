@@ -264,7 +264,7 @@ metadata:
 
 #### Option B: Use Default Topic
 
-The skill defaults to `grimacegotchi/display`. To use a custom topic, edit the script:
+The skill defaults to `tamagotchi/default/display`. To use a custom topic, edit the script:
 
 ```bash
 # Open the script

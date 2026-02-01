@@ -1,7 +1,7 @@
 #!/bin/bash
-# XTeInk Display - MQTT Publisher for Grimacegotchi
+# XTeInk Display - MQTT Publisher
 # Usage: ./script.sh "message" [state]
-# States: idle, thinking, talking, excited, sleeping, error, alert
+# States: idle, thinking, talking, excited, sleeping, error, alert, working
 
 MESSAGE="${1:-${CLAWDBOT_MESSAGE:-}}"
 STATE="${2:-${CLAWDBOT_STATE:-talking}}"
