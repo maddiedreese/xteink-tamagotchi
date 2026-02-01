@@ -26,16 +26,15 @@ Display your OpenClaw / Clawdbot / MoltBot AI assistant's activity on a portable
    - [Firmware](#firmware)
    - [The Skill](#the-skill)
    - [MQTT Message Format](#mqtt-message-format)
-7. [Skill vs Hook: Which to Use?](#skill-vs-hook-which-to-use)
-8. [Customization](#customization)
+7. [Customization](#customization)
    - [Custom Sprites](#custom-sprites)
    - [Configuration Options](#configuration-options)
-9. [Troubleshooting](#troubleshooting)
-10. [Project Structure](#project-structure)
-11. [FAQ](#faq)
-12. [Contributing](#contributing)
-13. [License](#license)
-14. [Acknowledgments](#acknowledgments)
+8. [Troubleshooting](#troubleshooting)
+9. [Project Structure](#project-structure)
+10. [FAQ](#faq)
+11. [Contributing](#contributing)
+12. [License](#license)
+13. [Acknowledgments](#acknowledgments)
 
 ---
 
@@ -90,17 +89,8 @@ XTeInk Tamagotchi transforms an XTeInk X4 e-ink display into a companion for you
 5. **The XTeInk** (subscribed to the same topic) receives the message
 6. **The firmware** parses the JSON and updates the e-ink display
 
-### Skill vs Hook
-
-This implementation uses a **skill-based approach** rather than a hook:
-
-| Approach | How It Works |
-|----------|-------------|
-| **Skill (this repo)** | You manually invoke the skill script after sending a message. Gives you full control over when/what is displayed. |
-| **Hook (legacy)** | Automatically intercepts every message event. Simpler but less flexible. |
-
-The skill approach is preferred because:
-- ✅ You control exactly when/what is displayed
+The skill approach gives you:
+- ✅ Full control over when/what is displayed
 - ✅ Works with any messaging platform (Telegram, Discord, Signal, etc.)
 - ✅ No automatic publishing of sensitive/thought messages
 - ✅ Can customize state (thinking, talking, excited, etc.) per message
@@ -130,7 +120,7 @@ No Raspberry Pi, no additional batteries, no soldering required. The XTeInk X4 i
 # Install via pip:
 pip install platformio
 
-# 2. MQTT client tools (for the hook to publish messages)
+# 2. MQTT client tools (for the skill to publish messages)
 # macOS:
 brew install mosquitto
 
@@ -392,39 +382,9 @@ MAX_CHARS=288                    # Max message length (display limit)
 
 ---
 
-### The Hook (Legacy)
-
-A legacy hook (`hook/handler.ts`) is also included for reference. It automatically intercepts events, but requires more setup and is less flexible.
-
-**The hook is triggered when:**
-- Assistant generates a response → publishes with `state: "talking"`
-- User sends a message → publishes with `state: "alert"`
-
----
-
-## Skill vs Hook: Which to Use?
-
-This project includes both a skill and a hook. We recommend the **skill approach** for most users:
-
-| Feature | Skill (Recommended) | Hook (Legacy) |
-|---------|---------------------|---------------|
-| **Control** | Manual - you run it when you want | Automatic - runs on every event |
-| **Platform Support** | Any platform (Telegram, Discord, Signal, etc.) | Clawdbot events only |
-| **Flexibility** | Full control over what/when is displayed | Limited to predefined events |
-| **Privacy** | Only publishes what you choose | May publish internal thought messages |
-| **Setup** | Simple copy to skills folder | Requires environment variables |
-| **Use Case** | Best for most users | Advanced users wanting automation |
-
-**To switch from hook to skill:**
-1. Remove the hook from your hooks folder (if installed)
-2. Install the skill as described in Step 4
-3. Run `./script.sh "Your message" talking` after each response
-
----
-
 ### MQTT Message Format
 
-The hook publishes JSON messages in this format:
+The skill publishes JSON messages in this format:
 
 ```json
 {
@@ -453,43 +413,64 @@ The hook publishes JSON messages in this format:
 
 ### Custom Sprites
 
-You can replace the default sprites with your own designs:
+You can replace the default sprites with your own designs. Here's our actual workflow:
 
-1. **Create PNG images:**
-   - Size: 200×200 pixels
-   - Format: Black and white (1-bit)
-   - Transparent backgrounds work best
+#### Our Sprite Creation Workflow
 
-2. **Name them:**
-   ```
-   sprites/
-   ├── sleeping.png
-   ├── idle.png
-   ├── alert.png
-   ├── thinking.png
-   ├── talking.png
-   ├── working.png
-   ├── excited.png
-   └── error.png
-   ```
+1. **Generate with Nano Banana Pro**
+   - Use Gemini 3 Pro Image (Nano Banana Pro) to generate the initial sprite design
+   - Get a clean PNG with your character/design
 
-3. **Run the converter:**
+2. **Remove Background with Canva Pro**
+   - Upload to Canva
+   - Use "Remove Background" tool to get a clean transparent background
+   - Export as PNG
+
+3. **Convert to Pixel Art with Piskel**
+   - Import the PNG into Piskel (piskelapp.com)
+   - Resize to 200×200 pixels
+   - Use the pixel art tools to clean up and stylize
+   - Export as PNG
+
+4. **Run the Converter**
    ```bash
    # Install dependencies first
-   pip install platformio   # For pio command
+   pip install platformio
    python3 convert_sprites.py
    ```
 
-4. **Copy generated headers:**
+5. **Copy Generated Headers**
    ```bash
    cp ~/clawdbot-tamagotchi/xteink-firmware/include/*.h firmware/include/
    ```
 
-5. **Rebuild and flash:**
+6. **Rebuild and Flash**
    ```bash
    cd firmware
    pio run -t upload
    ```
+
+#### Sprite Requirements
+
+| Requirement | Details |
+|-------------|---------|
+| Size | 200×200 pixels |
+| Format | PNG with transparent background |
+| Style | Pixel art (1-bit black and white works best) |
+
+#### Sprite Names
+
+```
+sprites/
+├── sleeping.png
+├── idle.png
+├── alert.png
+├── thinking.png
+├── talking.png
+├── working.png
+├── excited.png
+└── error.png
+```
 
 ---
 
@@ -579,8 +560,6 @@ You can replace the default sprites with your own designs:
    ./script.sh "Test message" talking
    ```
 
-4. **Check Clawdbot logs** for hook execution messages
-
 ---
 
 ### Messages are truncated
@@ -613,13 +592,9 @@ xteink-tamagotchi/
 │   │   └── FreeMonoBold*.h     # Font files
 │   └── platformio.ini          # PlatformIO configuration
 │
-├── skill/                       # Clawdbot skill (recommended approach)
+├── skill/                       # Clawdbot skill for publishing to display
 │   ├── SKILL.md                # Skill metadata and configuration
 │   └── script.sh               # Shell script for publishing to MQTT
-│
-├── hook/                        # Legacy Clawdbot hook (auto-publishing)
-│   ├── HOOK.md                 # Hook metadata
-│   └── handler.ts              # TypeScript handler (publishes to MQTT)
 │
 ├── sprites/                     # Source sprite images (200x200 PNG)
 │   ├── sleeping.png
@@ -677,7 +652,7 @@ The XTeInk X4 has a built-in battery. With typical usage (a few messages per day
 
 Yes! The display works with any AI assistant that can publish MQTT messages. You'll need to:
 
-1. Create a custom hook/integration for your assistant
+1. Create a custom integration for your assistant
 2. Publish JSON in the [correct format](#mqtt-message-format)
 3. Subscribe to the same topic
 
