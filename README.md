@@ -288,22 +288,25 @@ cd ~/.clawdbot/skills/xteink-display
 ./script.sh "Your message here" talking
 
 # Examples for different states:
-./script.sh "Processing your request..." thinking
-./script.sh "Task completed!" excited
-./script.sh "Oops, something went wrong" error
 ./script.sh "" idle
+./script.sh "New message received!" alert
+./script.sh "Processing your request..." thinking
+./script.sh "Searching the web..." working
+./script.sh "Task completed!" excited
+./script.sh "Something went wrong" error
 ```
 
 #### Available States
 
 | State | When to Use |
 |-------|-------------|
+| `idle` | Default state, waiting for activity |
 | `alert` | New message received from user |
 | `thinking` | Processing/thinking about the request |
 | `talking` | Responding to user |
+| `working` | Using a tool (search, fetch, etc.) |
 | `excited` | Task completed successfully |
-| `error` | Something went wrong |
-| `idle` | Waiting for activity |
+| `error` | Error at some point in the process |
 | `sleeping` | Idle for 5+ minutes |
 
 ---
@@ -325,10 +328,17 @@ After every message you send to users (on Telegram, Discord, Signal, etc.), imme
 cd ~/.clawdbot/skills/xteink-display && ./script.sh "Your exact message here" talking
 ```
 
-- Use `talking` when responding to users
-- Use `excited` when tasks complete successfully
-- Use `error` when something goes wrong
-- Pass the **exact same message** you sent to the user
+**States to use:**
+- `idle` - default state
+- `alert` - new message received from user
+- `thinking` - processing/thinking
+- `talking` - responding to user
+- `working` - using a tool (search, fetch, etc.)
+- `excited` - task completed successfully
+- `error` - error at some point in the process
+- `sleeping` - idle for 5+ minutes
+
+Pass the **exact same message** you sent to the user.
 ```
 
 #### Option B: Add to Daily Notes Template
